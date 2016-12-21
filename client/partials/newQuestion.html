@@ -1,0 +1,8 @@
+<div ng-controller="newQuestionController">
+  <h2 ng-bind="err"></h2>
+  Question: <textarea name="name" rows="8" cols="80" ng-model="question"></textarea>
+  <br>
+  Details: <textarea name="name" rows="8" cols="80" ng-model="details"></textarea>
+  <br>
+  <button type="button" ng-click="createQuestion()">Post Question</button>
+</div>

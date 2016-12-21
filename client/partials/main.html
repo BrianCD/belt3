@@ -1,0 +1,31 @@
+<div ng-controller="indexController">
+	<h1>Hello, {{name}}!</h1>
+	<a href="#/newQuestion">Add a Question</a>
+	<div ng-if="!(questions||err)">
+		<h2>Retrieving questions...</h2>
+	</div>
+	<div ng-if="err">
+		<h2>There was an error retrieving the questions: {{err}}</h2>
+	</div>
+	<div ng-if="questions&amp;&amp;!questions.items">
+		<h2>There are no questions!</h2>
+	</div>
+	<div ng-if="questions&amp;&amp;questions.items">
+		Search: <input type="text" ng-model = "search">
+		<table>
+			<thead>
+				<th>Question</th>
+				<th>Answers</th>
+				<th>Action</th>
+			</thead>
+			<tbody>
+				{{search}}
+				<tr ng-repeat="question in questions.items|filter:{question:search}">
+					<td>{{question.question}}</td>
+					<td>{{question.answers.length}}</td>
+					<td><a href="#/question/{{question._id}}">Show</a>/<a href="#/question/{{question._id}}/newAnswer">Answer</a></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>

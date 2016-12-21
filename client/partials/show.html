@@ -1,0 +1,29 @@
+<div ng-controller="questionController">
+  <div ng-if="!(question||err)">
+    <h2>Retrieving question...</h2>
+  </div>
+  <div ng-if="err">
+    <h2>There was an error retrieving the question: {{err}}</h2>
+  </div>
+  <div ng-if="question">
+    <h3>{{question.question}}</h3>
+    <p>{{question.description}}</p>
+    <a href="#/question/{{question._id}}/newAnswer">Answer this question</a>
+    <div ng-if="!question.answers.length">
+      <h2>There are no answers yet!</h2>
+    </div>
+    <div ng-if="question.answers.length">
+      <table>
+        <tbody>
+          <tr ng-repeat="answer in question.answers | orderBy:'likes':true">
+            <td>{{answer.author}}:
+              <p>{{answer.answer}}</p>
+              <p>{{answer.details}}</p>
+            </td>
+            <td>{{answer.likes}} Likes</td>
+            <td><button type="button" ng-click="likeAnswer(answer._id)">Like!</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>

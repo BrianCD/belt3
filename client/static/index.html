@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html ng-app="questions">
+
+<head>
+  <meta charset="utf-8">
+  <title> Index </title>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-route.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-cookies.js"></script>
+  <script type="text/javascript">
+  var questions = angular.module("questions", ["ngRoute", "ngCookies"]);
+
+  questions.config(function($routeProvider){
+    $routeProvider
+    .when("/", {
+      templateUrl: "partials/main.html"
+    })
+    .when("/login", {
+      templateUrl: "partials/login.html"
+    })
+    .when("/logout", {
+      templateUrl: "partials/logout.html"
+    })
+    .when("/newQuestion", {
+      templateUrl: "partials/newQuestion.html"
+    })
+    .when("/question/:id/newAnswer", {
+      templateUrl: "partials/newAnswer.html"
+    })
+    .when("/question/:id", {
+      templateUrl: "partials/show.html"
+    })
+    .otherwise({
+      redirectTo: "/"
+    });
+  });
+
+  questions.factory("questionFactory", ["$http", function($http){
+    var factory = {};
+    factory.getQuestions = function (callback){
+      $http.get("/questions", {timeout:5000}).then(function (response){
+        if (response.data.err){
+          callback(response.data.err.message, null);//eslint-disable-line callback-return
+        } else {
+          callback(null, response);//eslint-disable-line callback-return
+        }
+      }, function(err){
+        callback(err, null);
+      });
+    };
+    factory.getQuestion = function (id, callback){
+      $http.get("/questions/"+id, {timeout:5000}).then(function (response){
+        if (response.data.err){
+          callback(response.data.err.message, null);//eslint-disable-line callback-return
+        } else {
+          callback(null, response);//eslint-disable-line callback-return
+        }
+      }, function(err){
+        callback(err, null);
+      });
+    };
+    return factory;
+  }]);
+
+  questions.controller("loginController", ["$scope", "$cookies", "$location", function($scope, $cookies, $location){
+    $scope.home.shouldDisplay=false;
+    $scope.login = function(){
+      $cookies.put("name", $scope.nameInput);
+      $location.url("/");
+    };
+  }]);
+
+  questions.controller("logoutController", ["$scope", "$cookies", "$location", function($scope, $cookies, $location){
+    $scope.getName();
+    $cookies.remove("name");
+    $location.url("/login");
+  }]);
+
+  questions.controller("indexController", ["$scope", "$cookies", "$location", "questionFactory", function($scope, $cookies, $location, questionFactory){
+    $scope.getName();
+    $scope.home.shouldDisplay=false;
+    questionFactory.getQuestions(function(err, questions){
+      if (err){
+        $scope.err = err;
+      } else {
+        console.log(questions);
+        $scope.questions = questions.data;
+      }
+    });
+  }]);
+  questions.controller("questionController", ["$scope", "$cookies", "$location", "$routeParams", "$http", "questionFactory", function($scope, $cookies, $location, $routeParams, $http, questionFactory){
+    $scope.getName();
+    $scope.home.shouldDisplay=true;
+    $scope.qID = $routeParams.id;
+    questionFactory.getQuestion($routeParams.id, function(err, question){
+      if (err){
+        $scope.err = err;
+      } else {
+        $scope.question = question.data.question;
+      }
+    });
+    $scope.likeAnswer = function(id){
+      var pos;
+      for (pos in $scope.question.answers){
+        if ($scope.question.answers[pos]._id === id){
+          break;
+        }
+      }
+      $http.post("/questions/"+$scope.qID+"/"+$scope.question.answers[pos]._id).then(function(){
+        $scope.err = null;
+        $scope.question.answers[pos].likes+=1;
+      }, function(err){
+        $scope.err = err;
+      });
+    };
+  }]);
+  questions.controller("newQuestionController", ["$scope", "$cookies", "$location", "$http", function($scope, $cookies, $location, $http){
+    $scope.getName();
+    $scope.home.shouldDisplay=true;
+    $scope.createQuestion = function(){
+      $http.post("/questions", {
+        question: $scope.question,
+        details: $scope.details
+      }).then(function(){
+        $location.url("/");
+      }, function(err){
+        $scope.err = err;
+      });
+    };
+  }]);
+  questions.controller("newAnswerController", ["$scope", "$cookies", "$location", "$http", "$routeParams", function($scope, $cookies, $location, $http, $routeParams){
+    $scope.getName();
+    $scope.home.shouldDisplay=true;
+    $scope.qID = $routeParams.id;
+    $scope.createAnswer = function(){
+      $http.post("/questions/"+$routeParams.id+"/answer", {
+        author: $scope.name,
+        answer: $scope.answer,
+        details: $scope.details
+      }).then(function(){
+        $location.url("/questions/"+$routeParams.id);
+      }, function(err){
+        $scope.err = err;
+      });
+    };
+  }]);
+  questions.controller("outerController", ["$scope", "$cookies", "$location", function($scope, $cookies, $location){
+    $scope.getName = function(){
+      $scope.name = $cookies.get("name");
+      if (!$scope.name){
+        $location.url("/login");
+      }
+    };
+    $scope.home={shouldDisplay:false};
+  }]);
+  </script>
+</head>
+
+<body ng-controller="outerController">
+  <a href="#/" ng-if="home.shouldDisplay">Home</a>
+  <a href="#/logout" ng-if="name">Log out</a>
+  <ng-view></ng-view>
+
+</body>
+</html>

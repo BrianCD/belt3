@@ -1,0 +1,9 @@
+<div ng-controller="newAnswerController">
+  <a href="#/questions/{{qID}}">Go Back to Question</a>
+  <h2 ng-bind="err"></h2>
+  Answer: <textarea name="name" rows="8" cols="80" ng-model="answer"></textarea>
+  <br>
+  Details: <textarea name="name" rows="8" cols="80" ng-model="details"></textarea>
+  <br>
+  <button type="button" ng-click="createAnswer()">Post Answer</button>
+</div>
